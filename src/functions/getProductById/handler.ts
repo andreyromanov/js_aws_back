@@ -3,7 +3,7 @@ import { formatJSONResponse, formatJSONError } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import { getProducts } from '@libs/mocks/products';
 
-const getProductById = async (event: APIGatewayProxyEvent) => {
+export const getProductById = async (event: APIGatewayProxyEvent) => {
   const { productId } = event.pathParameters;
   const products = await getProducts.then(data => data);
   const product = products.find(p => p.id === productId);

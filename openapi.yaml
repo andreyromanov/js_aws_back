@@ -13,7 +13,7 @@ paths:
       tags:
         - product
       summary: List of products
-      description: Git list of all products in the store
+      description: Get list of all products in the store
       operationId: getProductsList
       responses:
         '200':
