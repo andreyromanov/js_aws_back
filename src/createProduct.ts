@@ -1,13 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from 'uuid';
 import { validateObject } from "./productSchema";
 
 export const createProduct = async (event) => {
   console.log(`POST - createProducts, data: ${event.body}`);
   try {
-    const validate = validateObject(JSON.parse(event.body));    
-    if(validate.error){
+    const validate = validateObject(JSON.parse(event.body));
+    if (validate.error) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'text/plain' },
@@ -18,14 +18,30 @@ export const createProduct = async (event) => {
     const { title, description, price, count } = JSON.parse(event.body)
     const id = uuidv4();
 
-    const createProduct = dynamoDbClient.send(new PutCommand({
-      TableName: 'products-table-dev', Item: { id, title, description, price }
+    await dynamoDbClient.send(new TransactWriteCommand({
+      TransactItems: [
+        {
+          Put: {
+            Item: {
+              id,
+              title,
+              description,
+              price
+            },
+            TableName: "products-table-dev",
+          },
+        },
+        {
+          Put: {
+            Item: {
+              product_id: id,
+              count
+            },
+            TableName: "stocks-table-dev",
+          },
+        },
+      ],
     }));
-    const createStock = dynamoDbClient.send(new PutCommand({
-      TableName: 'stocks-table-dev', Item: { product_id: id, count }
-    }));
-
-    await Promise.all([ createProduct, createStock ]);
 
     return {
       headers: {
