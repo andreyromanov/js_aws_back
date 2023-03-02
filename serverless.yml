@@ -1,0 +1,87 @@
+service: product-service-v2
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  profile: student1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [ ProductsTable, Arn ]
+            - Fn::GetAtt: [ StocksTable, Arn ]
+  environment:
+    PRODUCTS_TABLE: ${self:custom.productsTableName}
+    STOCKS_TABLE: ${self:custom.stocksTableName}
+
+functions:
+  createProduct:
+    handler: src/createProduct.createProduct
+    events:
+      - http:
+          path: products
+          method: post
+          cors: true
+
+  getProductsList:
+    handler: src/getProductsList.getProductsList
+    events:
+      - http:
+          path: products
+          method: get
+          cors: true
+        
+  getProductsById:
+    handler: src/getProductsById.getProductsById
+    events:
+      - http:
+          path: products/{productId}
+          method: get
+          cors: 
+
+resources:
+  Resources:
+    ProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.productsTableName}
+
+    StocksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: product_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: product_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.stocksTableName}
+
+plugins:
+  - serverless-esbuild
+custom:
+  productsTableName: 'products-table-${sls:stage}'
+  stocksTableName: 'stocks-table-${sls:stage}'
+  esbuild:
+    bundle: true
+    minify: true
+   
