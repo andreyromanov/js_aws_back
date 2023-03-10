@@ -1,0 +1,37 @@
+service: import-service
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  profile: student1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:*
+          Resource:
+            - "arn:aws:s3:::import-service-bucket-aws-js"
+functions:
+  importProductsFile:
+    handler: src/importProductsFile.importProductsFile
+    events:
+      - http:
+          path: import
+          method: get
+          cors: true
+          request:
+            parameters:
+              querystrings:
+                name: true
+
+plugins:
+  - serverless-esbuild
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+   

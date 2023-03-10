@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Serverless aws-nodejs-typescript template",
   "main": "serverless.ts",
-  "type": "module",
+  
   "scripts": {
     "test": "jest",
     "deploy": "serverless deploy"
