@@ -17,11 +17,18 @@ export const importFileParser = async (event) => {
       console.log('DATA', data);
     })
     .on('end', async () => {
-      var params = {
+      const params = {
         Bucket: 'import-service-bucket-aws-js',
         CopySource: encodeURI(`import-service-bucket-aws-js/${event.Records[0].s3.object.key}`),
         Key: event.Records[0].s3.object.key.replace('uploaded', 'parsed')
       };
       await client.copyObject(params).promise()
+
+      const deleteparams = {
+        Bucket: 'import-service-bucket-aws-js',
+        Key: encodeURI(`import-service-bucket-aws-js/${event.Records[0].s3.object.key}`)
+      };
+
+      await client.deleteObject(deleteparams).promise();
     });
 };
