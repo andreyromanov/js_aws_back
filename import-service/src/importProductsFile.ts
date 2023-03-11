@@ -1,6 +1,5 @@
 export const importProductsFile = async (event) => {
   try {
-    console.log(event);
     const csvFile = event.queryStringParameters?.name;
     const signedUrl = `uploaded/${csvFile}`;
     return {
