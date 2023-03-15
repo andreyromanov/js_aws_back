@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Serverless aws-nodejs-typescript template",
   "main": "serverless.ts",
+  "type": "module",
   "scripts": {
     "test": "jest",
     "deploy": "serverless deploy"
@@ -11,13 +12,18 @@
     "node": ">=14.15.0"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.281.0",
+    "@aws-sdk/lib-dynamodb": "^3.281.0",
     "@middy/core": "^3.4.0",
-    "@middy/http-json-body-parser": "^3.4.0"
+    "@middy/http-json-body-parser": "^3.4.0",
+    "joi": "^17.8.3",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@serverless/typescript": "^3.0.0",
     "@types/aws-lambda": "^8.10.71",
     "@types/jest": "^29.4.0",
+    "@types/joi": "^17.2.3",
     "@types/node": "^14.14.25",
     "esbuild": "^0.14.54",
     "jest": "^29.4.3",
