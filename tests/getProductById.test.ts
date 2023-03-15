@@ -1,4 +1,4 @@
-import { getProductById } from '../src/functions/getProductById/handler';
+import { getProductsById } from '../src/getProductsById';
 describe('Get product by id test', () => {
     test('Should return founded product.', async () => {
         const event: any = {
@@ -6,7 +6,7 @@ describe('Get product by id test', () => {
                 productId: "7567ec4b-b10c-48c5-9345-fc73c48a80aa"
             }
         };
-        const res = await getProductById(event);
+        const res = await getProductsById(event);
 
         expect(res.statusCode).toBe(200);
     });
@@ -17,7 +17,7 @@ describe('Get product by id test', () => {
                 productId: 123
             }
         };
-        const res = await getProductById(event);
+        const res = await getProductsById(event);
 
         expect(res.statusCode).toBe(404);
     });

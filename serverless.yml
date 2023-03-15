@@ -1,0 +1,33 @@
+service: product-service-v2
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  profile: student1
+
+functions:
+  getProductsList:
+    handler: src/getProductsList.getProductsList
+    events:
+      - http:
+          path: products
+          method: get
+          cors: true
+        
+  getProductsById:
+    handler: src/getProductsById.getProductsById
+    events:
+      - http:
+          path: products/{productId}
+          method: get
+          cors: 
+plugins:
+  - serverless-esbuild
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+   
