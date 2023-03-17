@@ -13,17 +13,20 @@ export const importFileParser = async (event) => {
   const bodyStream = await getObjectResult.Body.transformToString();
   stream.push(bodyStream);
   stream.push(null);
-  stream.pipe(csv())
+  await new Promise(() => {
+    stream.pipe(csv())
     .on('data', (data) => {
       console.log('DATA', data);
     })
     .on('end', async () => {
-      const params = {
+      const putParams = {
         Bucket: 'import-service-bucket-aws-js',
-        CopySource: encodeURI(`${event.Records[0].s3.object.key}`),
-        Key: event.Records[0].s3.object.key.replace('uploaded', 'parsed')
+        Key: event.Records[0].s3.object.key.replace('uploaded', 'parsed'),
+        Body: bodyStream,
+        ContentType: 'text/csv'
       };
-      await client.copyObject(params);
+      await client.putObject(putParams);
       await client.deleteObject(params);
     });
+  });
 };
