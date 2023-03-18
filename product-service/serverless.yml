@@ -21,6 +21,18 @@ provider:
           Resource:
             - Fn::GetAtt: [ ProductsTable, Arn ]
             - Fn::GetAtt: [ StocksTable, Arn ]
+
+        - Effect: Allow
+          Action:
+            - sqs:*
+          Resource:
+            Fn::GetAtt: [ SQSQueue, Arn ]
+
+        - Effect: "Allow"
+          Action:
+            - "lambda:InvokeFunction"
+          Resource: "*"
+
   environment:
     PRODUCTS_TABLE: ${self:custom.productsTableName}
     STOCKS_TABLE: ${self:custom.stocksTableName}
@@ -50,6 +62,16 @@ functions:
           method: get
           cors: true
 
+  catalogBatchProcess:
+    handler: src/catalogBatchProcess.catalogBatchProcess
+    timeout: 10
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - SQSQueue
+              - Arn
 resources:
   Resources:
     ProductsTable:
@@ -75,6 +97,11 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.stocksTableName}
+
+    SQSQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: catalogItemsQueue
 
 plugins:
   - serverless-esbuild

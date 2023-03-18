@@ -21,6 +21,12 @@ provider:
             "arn:aws:s3:::import-service-bucket-aws-js",
             "arn:aws:s3:::import-service-bucket-aws-js/*"
           ]
+
+        - Effect: Allow
+          Action:
+            - sqs:*
+          Resource: '*'
+  
 functions:
   importProductsFile:
     handler: src/importProductsFile.importProductsFile

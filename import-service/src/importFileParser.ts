@@ -1,9 +1,11 @@
 import { S3 } from "@aws-sdk/client-s3";
+import AWS from 'aws-sdk'
 import { Readable } from 'stream'
 import csv from 'csv-parser';
 
 export const importFileParser = async (event) => {
   const client = new S3({ region: 'eu-west-2' });
+  const SQS = new AWS.SQS();
   const stream = new Readable();
   const params = {
     Bucket: 'import-service-bucket-aws-js',
@@ -16,7 +18,17 @@ export const importFileParser = async (event) => {
   await new Promise(() => {
     stream.pipe(csv())
     .on('data', (data) => {
-      console.log('DATA', data);
+      const params = {
+        MessageBody: JSON.stringify(data),
+        QueueUrl: process.env.QUEUE_URL
+      }
+      SQS.sendMessage(params, (err,result) => {
+        if (err) {
+          console.log(err)
+          return
+        }
+        console.log(`Sent request to create product ${data.id}`)
+      })
     })
     .on('end', async () => {
       const putParams = {

@@ -5,8 +5,15 @@ import { validateObject } from "./productSchema";
 
 export const createProduct = async (event) => {
   console.log(`POST - createProducts, data: ${event.body}`);
+  let body;
+  if(typeof event.body === 'string') {
+    body = JSON.parse(event.body)
+  } else {
+    body = event.body    
+  }
+  
   try {
-    const validate = validateObject(JSON.parse(event.body));
+    const validate = validateObject(body);
     if (validate.error) {
       return {
         statusCode: 400,
@@ -15,7 +22,7 @@ export const createProduct = async (event) => {
       }
     }
     const dynamoDbClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-    const { title, description, price, count } = JSON.parse(event.body)
+    const { title, description, price, count } = body;
     const id = uuidv4();
 
     await dynamoDbClient.send(new TransactWriteCommand({
@@ -48,7 +55,7 @@ export const createProduct = async (event) => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': true,
       },
-      statusCode: 200,
+      statusCode: 201,
       body: JSON.stringify({ id, title, description, price, count }),
     };
   } catch (error) {
