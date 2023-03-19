@@ -1,13 +1,11 @@
-import { rejects } from 'assert';
 import AWS from 'aws-sdk'
-import { resolve } from 'path';
 
 const lambda = new AWS.Lambda({
   region: 'eu-west-2'
 });
 
-export const catalogBatchProcess = async (event) => {
-  return await new Promise(async () => {
+export const catalogBatchProcess = async (event): Promise<string> => {
+  return new Promise((resolve, reject) => {
     console.log(`SQS - catalogBatchProcess`);
     const payload = JSON.stringify({body: JSON.parse(event.Records[0].body)})
     const params = {
@@ -16,10 +14,10 @@ export const catalogBatchProcess = async (event) => {
     };
     lambda.invoke(params, (err, data) => {
       if (err) {
-        console.log(err);
+        reject(err);
       }
-      console.log(data);
-      resolve(JSON.stringify(data))
+      resolve(JSON.stringify(data));
     });
+    
   });
 };
