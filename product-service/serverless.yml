@@ -122,6 +122,9 @@ resources:
       Properties:
         Endpoint: andreygorogogo@gmail.com
         Protocol: email
+        FilterPolicy:
+          title:
+            - "Dunlop"
         TopicArn:
           Ref: SNSTopic
 
