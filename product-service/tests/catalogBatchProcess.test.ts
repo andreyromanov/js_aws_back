@@ -1,28 +1,45 @@
 import { catalogBatchProcess } from '../src/catalogBatchProcess';
-import { Lambda as LambdaMock } from 'aws-sdk';
+import { Lambda as LambdaMock, SNS as SNSMock } from 'aws-sdk';
 
 jest.mock('aws-sdk', () => {
   const mLambda = { invoke: jest.fn() };
-  return { Lambda: jest.fn(() => mLambda) };
+  const mSns = { publish: jest.fn() };
+  return {
+    Lambda: jest.fn(() => mLambda),
+    SNS: jest.fn(() => mSns)
+  };
 });
 
 describe('Process batch of items', () => {
-  test('should successfuly invoke lambda', async () => {
-    const event = {
-      Records: [
-        {
-          body: JSON.stringify({}),
-        }
-      ]
-    };
-    const mLambda = new LambdaMock();
-    const mResult = {};
-    (mLambda.invoke as jest.Mocked<any>).mockImplementationOnce((_params, callback) => {
-      callback(null, mResult);
+  const mLambda = new LambdaMock();
+  const mSns = new SNSMock();
+  const event = {
+    Records: [
+      {
+        body: JSON.stringify({}),
+      }
+    ]
+  };
+
+  beforeEach(() => {
+    (mSns.publish as jest.Mocked<any>).mockImplementationOnce((_params, callback) => {
+      callback(null, {});
     });
-    const actual = await catalogBatchProcess(event);
-    expect(actual).toEqual(JSON.stringify({}));
-    expect(LambdaMock).toBeCalledWith({ region: 'eu-west-2', endpoint: undefined });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+
+  test('should successfuly invoke lambda', async () => {
+    (mLambda.invoke as jest.Mocked<any>).mockImplementationOnce((_params, callback) => {
+      callback(null, {});
+    });
+
+    const res = await catalogBatchProcess(event);
+
+    expect(res).toEqual(JSON.stringify({}));
     expect(mLambda.invoke).toBeCalledWith(
       {
         FunctionName: undefined,
@@ -30,26 +47,17 @@ describe('Process batch of items', () => {
       },
       expect.any(Function),
     );
+    expect(mSns.publish).toBeCalled()
   });
 
   test('should return error after lambda invokation', async () => {
-    const event = {
-      Records: [
-        {
-          body: JSON.stringify({}),
-        }
-      ]
-    };
-    const mLambda = new LambdaMock();
-    const mResult = {};
     (mLambda.invoke as jest.Mocked<any>).mockImplementationOnce((_params, callback) => {
-      callback({ error: 'error' }, mResult);
+      callback({ error: 'error' }, {});
     });
 
     try {
       await catalogBatchProcess(event);
     } catch (error) {
-      expect(LambdaMock).toBeCalledWith({ region: 'eu-west-2', endpoint: undefined });
       expect(mLambda.invoke).toBeCalledWith(
         {
           FunctionName: undefined,
@@ -57,8 +65,7 @@ describe('Process batch of items', () => {
         },
         expect.any(Function),
       );
+      expect(mSns.publish).not.toBeCalled();
     }
-
-
   });
 });

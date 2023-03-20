@@ -28,6 +28,12 @@ provider:
           Resource:
             Fn::GetAtt: [ SQSQueue, Arn ]
 
+        - Effect: Allow
+          Action:
+            - sns:*
+          Resource:
+            Ref: SNSTopic
+
         - Effect: "Allow"
           Action:
             - "lambda:InvokeFunction"
@@ -36,6 +42,9 @@ provider:
   environment:
     PRODUCTS_TABLE: ${self:custom.productsTableName}
     STOCKS_TABLE: ${self:custom.stocksTableName}
+    CREATE_PRODUCTS_LAMBDA: product-service-v2-dev-createProduct
+    SNS_ARN: 
+      Ref: SNSTopic
 
 functions:
   createProduct:
@@ -102,6 +111,19 @@ resources:
       Type: "AWS::SQS::Queue"
       Properties:
         QueueName: catalogItemsQueue
+
+    SNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic
+    
+    SNSTopicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: andreygorogogo@gmail.com
+        Protocol: email
+        TopicArn:
+          Ref: SNSTopic
 
 plugins:
   - serverless-esbuild
