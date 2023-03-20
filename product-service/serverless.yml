@@ -128,6 +128,17 @@ resources:
         TopicArn:
           Ref: SNSTopic
 
+    SNSTopicSubscription2:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: andreygorogogo@ukr.net
+        Protocol: email
+        FilterPolicy:
+          title:
+            - "Mikasa"
+        TopicArn:
+          Ref: SNSTopic
+
 plugins:
   - serverless-esbuild
 custom:
