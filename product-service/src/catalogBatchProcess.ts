@@ -8,7 +8,10 @@ const SNS = new AWS.SNS();
 export const catalogBatchProcess = async (event): Promise<string> => {
   return new Promise((resolve, reject) => {
     console.log(`SQS - catalogBatchProcess`);
-    const payload = JSON.stringify({body: JSON.parse(event.Records[0].body)})
+    const parsedBody = JSON.parse(event.Records[0].body)
+    const payload = JSON.stringify({body: parsedBody})
+    console.log('STRING BODY', payload);
+    
     const params = {
       FunctionName: process.env.CREATE_PRODUCTS_LAMBDA,
       Payload: payload,
@@ -19,11 +22,20 @@ export const catalogBatchProcess = async (event): Promise<string> => {
         return;
       }
       SNS.publish({
-        Subject: 'Sns email',
-        Message: 'Hello world',
+        Subject: 'Product created!',
+        Message: 'New product is created',
+        MessageAttributes: {
+          title: {
+            DataType: 'String',
+            StringValue: parsedBody.title,
+          },
+        },
         TopicArn: process.env.SNS_ARN
-      }, () => {
-        console.log('Sent mesage to topic');
+      }, (err, data) => {
+        if(err){
+          console.log('Error', err);
+        }
+        console.log('Sent mesage to topic', data);
       });
       resolve(JSON.stringify(data));
     });

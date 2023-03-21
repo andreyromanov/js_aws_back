@@ -116,19 +116,11 @@ resources:
       Type: AWS::SNS::Topic
       Properties:
         TopicName: createProductTopic
-    
+        Subscription:
+          - Endpoint: andreygorogogo@gmail.com
+            Protocol: email    
+        
     SNSTopicSubscription:
-      Type: AWS::SNS::Subscription
-      Properties:
-        Endpoint: andreygorogogo@gmail.com
-        Protocol: email
-        FilterPolicy:
-          title:
-            - "Dunlop"
-        TopicArn:
-          Ref: SNSTopic
-
-    SNSTopicSubscription2:
       Type: AWS::SNS::Subscription
       Properties:
         Endpoint: andreygorogogo@ukr.net
