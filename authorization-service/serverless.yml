@@ -1,0 +1,31 @@
+service: authorization-service
+
+frameworkVersion: '3'
+useDotenv: true
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: eu-west-2
+  profile: student1
+  iam:
+    role:
+      statements:
+  environment:
+    LOGIN: ${env:LOGIN}
+    PASSWORD: ${env:PASSWORD}
+  
+functions:
+  basicAuthorizer:
+    handler: src/basicAuthorizer.basicAuthorizer
+    events:
+      - http:
+          path: auth
+          method: get
+          cors: true
+plugins:
+  - serverless-esbuild
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+   
