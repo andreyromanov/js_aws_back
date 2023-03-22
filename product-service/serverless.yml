@@ -1,12 +1,14 @@
 service: product-service-v2
 
 frameworkVersion: '3'
+useDotenv: true
 
 provider:
   name: aws
   runtime: nodejs14.x
   region: eu-west-2
   profile: student1
+  stage: dev
   iam:
     role:
       statements:
@@ -45,6 +47,8 @@ provider:
     CREATE_PRODUCTS_LAMBDA: product-service-v2-dev-createProduct
     SNS_ARN: 
       Ref: SNSTopic
+    FIRST_EMAIL: ${env:FIRST_EMAIL}
+    SECOND_EMAIL: ${env:SECOND_EMAIL}
 
 functions:
   createProduct:
@@ -73,10 +77,9 @@ functions:
 
   catalogBatchProcess:
     handler: src/catalogBatchProcess.catalogBatchProcess
-    timeout: 10
     events:
       - sqs:
-          batchSize: 1
+          batchSize: 5
           arn:
             Fn::GetAtt:
               - SQSQueue
@@ -117,13 +120,13 @@ resources:
       Properties:
         TopicName: createProductTopic
         Subscription:
-          - Endpoint: andreygorogogo@gmail.com
+          - Endpoint: ${env:FIRST_EMAIL}
             Protocol: email    
         
     SNSTopicSubscription:
       Type: AWS::SNS::Subscription
       Properties:
-        Endpoint: andreygorogogo@ukr.net
+        Endpoint: ${env:SECOND_EMAIL}
         Protocol: email
         FilterPolicy:
           title:
@@ -133,6 +136,8 @@ resources:
 
 plugins:
   - serverless-esbuild
+  - serverless-dotenv-plugin
+
 custom:
   productsTableName: 'products-table-${sls:stage}'
   stocksTableName: 'stocks-table-${sls:stage}'
