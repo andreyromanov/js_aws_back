@@ -1,12 +1,14 @@
 service: product-service-v2
 
 frameworkVersion: '3'
+useDotenv: true
 
 provider:
   name: aws
   runtime: nodejs14.x
   region: eu-west-2
   profile: student1
+  stage: dev
   iam:
     role:
       statements:
@@ -21,9 +23,32 @@ provider:
           Resource:
             - Fn::GetAtt: [ ProductsTable, Arn ]
             - Fn::GetAtt: [ StocksTable, Arn ]
+
+        - Effect: Allow
+          Action:
+            - sqs:*
+          Resource:
+            Fn::GetAtt: [ SQSQueue, Arn ]
+
+        - Effect: Allow
+          Action:
+            - sns:*
+          Resource:
+            Ref: SNSTopic
+
+        - Effect: "Allow"
+          Action:
+            - "lambda:InvokeFunction"
+          Resource: "*"
+
   environment:
     PRODUCTS_TABLE: ${self:custom.productsTableName}
     STOCKS_TABLE: ${self:custom.stocksTableName}
+    CREATE_PRODUCTS_LAMBDA: product-service-v2-dev-createProduct
+    SNS_ARN: 
+      Ref: SNSTopic
+    FIRST_EMAIL: ${env:FIRST_EMAIL}
+    SECOND_EMAIL: ${env:SECOND_EMAIL}
 
 functions:
   createProduct:
@@ -50,6 +75,15 @@ functions:
           method: get
           cors: true
 
+  catalogBatchProcess:
+    handler: src/catalogBatchProcess.catalogBatchProcess
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt:
+              - SQSQueue
+              - Arn
 resources:
   Resources:
     ProductsTable:
@@ -76,8 +110,34 @@ resources:
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:custom.stocksTableName}
 
+    SQSQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: catalogItemsQueue
+
+    SNSTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic
+        Subscription:
+          - Endpoint: ${env:FIRST_EMAIL}
+            Protocol: email    
+        
+    SNSTopicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: ${env:SECOND_EMAIL}
+        Protocol: email
+        FilterPolicy:
+          title:
+            - "Mikasa"
+        TopicArn:
+          Ref: SNSTopic
+
 plugins:
   - serverless-esbuild
+  - serverless-dotenv-plugin
+
 custom:
   productsTableName: 'products-table-${sls:stage}'
   stocksTableName: 'stocks-table-${sls:stage}'
