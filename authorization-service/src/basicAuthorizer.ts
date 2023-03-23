@@ -12,8 +12,6 @@ export const basicAuthorizer = async (event) => {
 
     return generateResponse(login, event.methodArn, 'Allow');
   } catch (error) {
-    console.log(error);
-    
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'text/plain' },
